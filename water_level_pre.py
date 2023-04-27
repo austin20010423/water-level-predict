@@ -61,6 +61,12 @@ def predict_water_level(data, max, min, input_size=3, hidden_size=32, output_siz
         print('Epoch: {} \tTraining Loss: {:.6f}'.format(
             epoch+1, train_loss / len(train_data)))
 
+    # model save
+    torch.save(lstm.state_dict(), 'model_weights.pth')
+
+    # load model
+    lstm.load_state_dict(torch.load('model_weights.pth'))
+
     # 測試模型
 
     pre_water_level = []
