@@ -1,8 +1,29 @@
 import water_level_pre
 import read_data as rd
-
+import pandas as pd
 
 data, max, min = rd.read()
 re = water_level_pre.predict_water_level(data, max, min)
 
-print(re)
+df = pd.read_csv('data.csv')
+result = []
+level = df['昨日有效蓄水量(萬立方公尺)'].tolist()
+level = level[2901:2911]
+water_in = re[0]
+water_out = re[1]
+tmp = 0
+for i in range(0, len(level)):
+    tmp = level[i] + water_in[i] - water_out[i]
+    result.append(tmp)
+
+
+l = df['有效蓄水量(萬立方公尺)'].tolist()
+need = l[2901:2911]
+print('need: ', need)
+print('result: ', result)
+dis = []
+
+for j in range(0, len(need)):
+    dis.append(float(need[j]) - float(result[j]))
+
+print('differ: ', dis)

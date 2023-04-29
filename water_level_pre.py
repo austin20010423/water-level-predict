@@ -19,7 +19,7 @@ class LSTM(nn.Module):
         return predictions[-1]
 
 
-def predict_water_level(data, max, min, input_size=3, hidden_size=32, output_size=3, num_epochs=1000):
+def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_size=2, num_epochs=1):
 
     # 定義訓練集和測試集的大小
     train_size = int(len(data) * 0.8)
@@ -62,14 +62,13 @@ def predict_water_level(data, max, min, input_size=3, hidden_size=32, output_siz
             epoch+1, train_loss / len(train_data)))
 
     # model save
-    # torch.save(lstm.state_dict(), 'model_weights.pth')
+    #torch.save(lstm.state_dict(), 'model_weights.pth')
 
     # load model
     lstm.load_state_dict(torch.load('model_weights.pth'))
 
     # 測試模型
 
-    pre_water_level = []
     pre_in_water = []
     pre_loss_water = []
     with torch.no_grad():
@@ -78,25 +77,21 @@ def predict_water_level(data, max, min, input_size=3, hidden_size=32, output_siz
         for i in range(test_size):
             output = lstm(input)
             # print(output.size())
-            pre_water_level.append(output[0].item())
-            pre_in_water.append(output[1].item())
-            pre_loss_water.append(output[2].item())
-            output = output.view(1, 3)
+
+            pre_in_water.append(output[0].item())
+            pre_loss_water.append(output[1].item())
+            output = output.view(1, 2)
             # print(output.size())
             input = output
 
-    print(np.array(pre_water_level[:10]))
     # 輸出預測結果
-    water_level_restored = np.array(
-        pre_water_level[:10]) * (max[0] - min[0]) + min[0]
-    print('water level: ', water_level_restored)
     in_water_restored = np.array(
-        pre_in_water[:10]) * (max[1] - min[1]) + min[1]
+        pre_in_water[:10]) * (max[0] - min[0]) + min[0]
     print('in water: ', in_water_restored)
     loss_water_restored = np.array(
-        pre_loss_water[:10]) * (max[2] - min[2]) + min[2]
+        pre_loss_water[:10]) * (max[1] - min[1]) + min[1]
     print('loss water: ', loss_water_restored)
-    return (water_level_restored, in_water_restored, loss_water_restored)
+    return (in_water_restored, loss_water_restored)
 
 
 data, max, min = rd.read()
