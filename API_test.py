@@ -1,6 +1,7 @@
 import water_level_pre
 import read_data as rd
 import pandas as pd
+import matplotlib.pyplot as plt
 
 data, max, min = rd.read()
 re = water_level_pre.predict_water_level(data, max, min)
@@ -27,3 +28,18 @@ for j in range(0, len(need)):
     dis.append(float(need[j]) - float(result[j]))
 
 print('differ: ', dis)
+
+x = ['1/9', '1/10', '1/11', '1/12', '1/13',
+     '1/14', '1/15', '1/16', '1/17', '1/18']
+# 畫圖
+plt.plot(x, result, label='predict')
+plt.plot(x, need, label='initial data')
+
+# 設定標題和軸標籤
+plt.title("reservoir water level")
+plt.xlabel("2021/1/9~2021/1/18")
+plt.ylabel("Effective storage capacity")
+plt.legend()
+
+# 顯示圖形
+plt.show()
