@@ -4,13 +4,14 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import read_data as rd
+from torch.utils.data import DataLoader
 
 
 class LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(LSTM, self).__init__()
         self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size, hidden_size)
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
         self.linear = nn.Linear(hidden_size, output_size)
 
     def forward(self, input):
@@ -19,7 +20,7 @@ class LSTM(nn.Module):
         return predictions[-1]
 
 
-def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_size=2, num_epochs=1):
+def predict_water_level(data, max, min, save=True, input_size=2, hidden_size=32, output_size=2, num_epochs=1):
 
     # 定義訓練集和測試集的大小
     train_size = int(len(data) * 0.8)
@@ -31,7 +32,6 @@ def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_siz
     # 將資料轉換成numpy array
     train_data = np.array(train_data)
     test_data = np.array(test_data)
-
     # 定義超參數
     learning_rate = 0.01
 
@@ -45,9 +45,10 @@ def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_siz
     # 訓練模型
     for epoch in range(num_epochs):
         train_loss = 0
-        for i in range(len(train_data) - 1):
-            input = torch.tensor(train_data[i:i+1]).float()
-            target = torch.tensor(train_data[i+1:i+2]).float()
+        for i in range(30, len(train_data) - 1):
+            input = torch.tensor(train_data[i-30:i]).float()
+            target = torch.tensor(train_data[i:i+1]).float()
+
             # print(input.shape)
             optimizer.zero_grad()
             output = lstm(input)
@@ -62,7 +63,8 @@ def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_siz
             epoch+1, train_loss / len(train_data)))
 
     # model save
-    #torch.save(lstm.state_dict(), 'model_weights.pth')
+    if save == True:
+        torch.save(lstm.state_dict(), 'model_weights.pth')
 
     # load model
     lstm.load_state_dict(torch.load('model_weights.pth'))
@@ -86,11 +88,11 @@ def predict_water_level(data, max, min, input_size=2, hidden_size=32, output_siz
 
     # 輸出預測結果
     in_water_restored = np.array(
-        pre_in_water[:10]) * (max[0] - min[0]) + min[0]
-    print('in water: ', in_water_restored)
+        pre_in_water[:300]) * (max[0] - min[0]) + min[0]
+    #print('in water: ', in_water_restored)
     loss_water_restored = np.array(
-        pre_loss_water[:10]) * (max[1] - min[1]) + min[1]
-    print('loss water: ', loss_water_restored)
+        pre_loss_water[:300]) * (max[1] - min[1]) + min[1]
+    #print('loss water: ', loss_water_restored)
     return (in_water_restored, loss_water_restored)
 
 
